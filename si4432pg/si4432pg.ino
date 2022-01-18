@@ -41,10 +41,9 @@ int parseint(const char *str) {
 }
 
 
-int regset(size_t argc, char **argv, struct process *self) {
+int register_set(size_t argc, char **argv, struct process *self) {
 	if (argc != 3) {
-		ERRORLN("Invalid number of arguments");
-		ERRORLN("Usage: regset 0x71 0b10010001");
+		nash_print_usage(self->executable, true);
 		return EXIT_FAILURE;
 	}
 	
@@ -55,10 +54,9 @@ int regset(size_t argc, char **argv, struct process *self) {
 }
 
 
-int regget(size_t argc, char **argv, struct process *self) {
+int register_get(size_t argc, char **argv, struct process *self) {
 	if (argc < 2 || argc > 3) {
-		ERRORLN("Invalid number of arguments");
-		ERRORLN("Usage: regget 0x71 [MSB:LSB]");
+		nash_print_usage(self->executable, true);
 		return EXIT_FAILURE;
 	}
 
@@ -84,23 +82,31 @@ int regget(size_t argc, char **argv, struct process *self) {
 
 int power(size_t argc, char **argv, struct process *self) {
 	if (argc > 2) {
-		ERRORLN("Invalid number of arguments");
-		ERRORLN("Usage: power on|off");
+		nash_print_usage(self->executable, true);
 		return EXIT_FAILURE;
 	}
 	
-	digitalWrite(SDN, argv[1][1] == 'o');
+	if (argc == 2) {
+		/* Modify the gpio */
+		digitalWrite(SDN, argv[1][1] == 'f');
+	}
+
+	/* Just report the power status */
+	bool status = digitalRead(SDN);
+	PRINT("Power is ");
+	PRINTLN(status? "Off": "On");
 	return EXIT_SUCCESS;
+	
 }
 
 
 
 static struct executable programs[] = {
-	{"help", nash_help },
-	{"free", nash_free },
-	{"regset", regset },
-	{"regget", regget },
-	{"power", power },
+	{"help", NULL, nash_help},
+	{"free", NULL, nash_free},
+	{"reg-set", "ADDR VALUE", register_set},
+	{"reg-get", "ADDR [MSB:LSB]", register_get},
+	{"power", "[ON/OFF]", power},
 	{ NULL }
 };
 
