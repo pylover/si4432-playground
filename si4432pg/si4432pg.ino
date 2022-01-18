@@ -55,14 +55,22 @@ int regset(size_t argc, char **argv, struct process *self) {
 
 
 int regget(size_t argc, char **argv, struct process *self) {
-	if (argc != 2) {
+	if (argc < 2 || argc > 3) {
 		ERRORLN("Invalid number of arguments");
-		ERRORLN("Usage: regget 0x71");
+		ERRORLN("Usage: regget 0x71 [MSB:LSB]");
 		return EXIT_FAILURE;
 	}
 
 	unsigned char addr = parseint(argv[1]);
 	uint8_t value = rf22.spiRead(addr);
+	
+	if (argc == 3) {
+		char * next;
+		uint8_t msb = strtol(argv[2], &next, 10);
+		uint8_t lsb = strtol(++next, NULL, 10);
+		value <<= 7 - msb;
+		value >>= (7 - msb) + lsb;
+	}
 	PRINT("0b");
 	printbits(value);
 	PRINT(" 0x");
