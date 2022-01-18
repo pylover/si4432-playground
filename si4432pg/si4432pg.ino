@@ -5,6 +5,7 @@
 RH_RF22 rf22;
 #define SDN	7 
 
+
 void printbits(uint8_t value) {
 	for (int i = 7; i >= 0; i--) {
 		PRINT((value >> i) & 1);
@@ -81,11 +82,25 @@ int regget(size_t argc, char **argv, struct process *self) {
 }
 
 
+int power(size_t argc, char **argv, struct process *self) {
+	if (argc != 2) {
+		ERRORLN("Invalid number of arguments");
+		ERRORLN("Usage: power on|off");
+		return EXIT_FAILURE;
+	}
+	
+	digitalWrite(SDN, argv[1][1] == 'o');
+	return EXIT_SUCCESS;
+}
+
+
+
 static struct executable programs[] = {
 	{"help", nash_help },
 	{"free", nash_free },
 	{"regset", regset },
 	{"regget", regget },
+	{"power", power },
 	{ NULL }
 };
 
