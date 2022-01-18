@@ -83,7 +83,7 @@ int regget(size_t argc, char **argv, struct process *self) {
 
 
 int power(size_t argc, char **argv, struct process *self) {
-	if (argc != 2) {
+	if (argc > 2) {
 		ERRORLN("Invalid number of arguments");
 		ERRORLN("Usage: power on|off");
 		return EXIT_FAILURE;
