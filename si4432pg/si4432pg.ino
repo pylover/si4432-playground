@@ -1,9 +1,11 @@
 #include <RH_RF22.h>
 #include <nash.h>
 
+
 #define BUSY_LED_PIN 9 
 #define SDN_PIN	7 
 #define STANDBY_LED_PIN	8 
+
 
 Nash shell("si4432-# ", BUSY_LED_PIN);
 RH_RF22 rf22;
@@ -104,11 +106,11 @@ int8_t sleep(Nash::Process *self) {
 
 
 static Nash::Executable programs[] = {
-	{"free", 0, 0, NULL, printFreeMemory},
-	{"reg-set", 2, 2, "ADDR VALUE", register_set},
-	{"reg-get", 1, 2, "ADDR [MSB:LSB]", register_get},
-	{"power", 0, 1, "[ON/OFF]", power},
-	{"sleep", 1, 1, "NUMBER", sleep},
+	{"free",    0, 0, NULL,             printFreeMemory   },
+	{"reg-set", 2, 2, "ADDR VALUE",     register_set      },
+	{"reg-get", 1, 2, "ADDR [MSB:LSB]", register_get      },
+	{"power",   0, 1, "[ON/OFF]",       power             },
+	{"sleep",   1, 1, "NUMBER",         sleep             },
 	{ NULL }
 };
 
@@ -133,6 +135,7 @@ void setup() {
 		Serial.println("init failed");
 	}
 }
+
 
 void loop() {
 	shell.loop();
