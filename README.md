@@ -9,12 +9,12 @@ Arduino UNO as a playground for SI4432 RF transmitter chip.
   Arduino                                     XL4432-SMT
     Uno                                       Transmitter
 +----------+                                 +-----------+
-|     3.3V |----------------------------+----| VDD   ANT |>-----))))))
-|          |                            |    |           |
-|          |            Sparkfun        |    |           |
-|          |            BOB-12009       |    |           |
-|          |          +-----------+     |    |           |
-|       5V |----------| HV     LV |-----+    |           |
+|     3.3V |--------------------------+------| VDD   ANT |>-----))))))
+|          |                          |      |           |
+|          |            Sparkfun      |      |           |
+|          |            BOB-12009     |      |           |
+|          |          +-----------+   |      |           |
+|       5V |----------| HV     LV |---+      |           |
 |   SCK 13 |>---------| 5V   3.3V |>-------->| SCLK      |
 |  MOSI 11 |>---------| 5V   3.3V |>-------->| SDI       |
 |    SS 10 |>---------| 5V   3.3V |>-------->| NSEL      |
@@ -40,4 +40,9 @@ Arduino UNO as a playground for SI4432 RF transmitter chip.
 reg-get ADDR [MSB:LSB]
 reg-set ADDR VALUE
 power [ON/OFF]
+freq 433.92
+recv [LENGTH]
+send DATA
+jam
+listen
 ```

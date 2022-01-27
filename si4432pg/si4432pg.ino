@@ -6,6 +6,27 @@
 #define SDN_PIN	7 
 #define STANDBY_LED_PIN	8 
 
+/*
+OOK 2.4, 335
+1Ch		0xc8	11001000	IF_FILTER_BANDWIDTH
+1Fh		0x03	00000011	CLOCK_RECOVERY_GEARSHIFT_OVERRIDE
+20h		0x39	00111001    CLOCK_RECOVERY_OVERSAMPLING_RATE
+21h		0x20    00100000	...
+22h		0x68	01101000	...
+23h		0xdc	11011100	...
+24h		0x00	00000000	...
+25h		0x6b	01101011	...
+2ch		0x2a	00101010	OOK_COUNTER_VALUE_1
+2dh		0x08	00001000	...
+2eh		0x2a	00101010	...
+58h		0x80	10000000	CHARGE_PUMP_CURRENT_TRIMMING
+69h		0x60	01100000	AGC_OVERRIDE1
+6eh		0x13	00010011	TX_DATA_RATE1
+6fh		0xa9	10101001	...
+70h		0x2c	00101100	...
+71h		0x21	00100001	...
+72h		0x08	00001000	...
+*/
 
 Nash shell("si4432-# ", BUSY_LED_PIN);
 RH_RF22 rf22;
@@ -88,21 +109,64 @@ int8_t power(Nash::Process *self) {
 	PRINT("Power is ");
 	PRINTLN(status? "Off": "On");
 	return EXIT_SUCCESS;
-	
 }
 
 
-int8_t sleep(Nash::Process *self) {
+int8_t freq(Nash::Process *self) {
+	float freq = atof(self->argv[1]);
+	rf22.setFrequency(freq);
+	PRINT("Frequency has been set to: ");
+	PRINTLN(freq);
+	return EXIT_SUCCESS;
+}
+
+int8_t send(Nash::Process *self) {
 	if (self->signal == SIG_INT) {
 		return EXIT_FAILURE;
 	}
-	unsigned long towait = atol(self->argv[1]) * 1000;
-	unsigned long taken = millis() - self->starttime;
-	if (taken < towait) {
-		return ALIVE;
-	}
+
+	rf22.send(self->argv[1], strlen(self->argv[1]));
 	return EXIT_SUCCESS;
 }
+
+int8_t recv(Nash::Process *self) {
+	if (self->signal == SIG_INT) {
+		return EXIT_FAILURE;
+	}
+	
+	uint8_t amount = self->argc > 1? atoi(self->argv[1]): 8;
+	char buff[amount + 1];
+	if (!rf22.recv(buff, &amount)) {
+		return ALIVE;
+	}
+	buff[amount] = NULL;
+	PRINTLN(buff);
+	return EXIT_SUCCESS;
+}
+
+int8_t jam(Nash::Process *self) {
+	if (self->signal == SIG_INT) {
+		return EXIT_FAILURE;
+	}
+	
+	rf22.send("abcdefghijklmnopqrstuvwxyzabcdef", 32);
+	return ALIVE;
+}
+
+int8_t listen(Nash::Process *self) {
+	if (self->signal == SIG_INT) {
+		return EXIT_FAILURE;
+	}
+	
+	uint8_t amount = 32;
+	char buff[amount + 1];
+	if (rf22.recv(buff, &amount)) {
+		buff[amount] = NULL;
+		PRINTLN(buff);
+	}
+	return ALIVE;
+}
+
 
 
 static Nash::Executable programs[] = {
@@ -110,7 +174,11 @@ static Nash::Executable programs[] = {
 	{"reg-set", 2, 2, "ADDR VALUE",     register_set      },
 	{"reg-get", 1, 2, "ADDR [MSB:LSB]", register_get      },
 	{"power",   0, 1, "[ON/OFF]",       power             },
-	{"sleep",   1, 1, "NUMBER",         sleep             },
+	{"freq",    1, 1, "FREQUENCY",      freq              },
+	{"recv",    0, 1, "[BYTES]",        recv              },
+	{"send",    1, 1, "DATA",           send              },
+	{"jam",     0, 0, NULL,             jam               },
+	{"listen",  0, 0, NULL,             listen            },
 	{ NULL }
 };
 
@@ -134,6 +202,15 @@ void setup() {
 	if (!rf22.init()) {
 		Serial.println("init failed");
 	}
+	
+	rf22.setFrequency(433.92, 0.05);
+	//rf22.setModemConfig(RH_RF22::OOK_Rb1_2Bw75);
+	//rf22.setModemConfig(RH_RF22::OOK_Rb2_4Bw335);
+	//rf22.setModemConfig(RH_RF22::OOK_Rb4_8Bw335);
+	//rf22.setModemConfig(RH_RF22::OOK_Rb40Bw335);
+	rf22.setModemConfig(RH_RF22::GFSK_Rb125Fd125);
+    rf22.setTxPower(RH_RF22_TXPOW_20DBM);
+
 }
 
 
